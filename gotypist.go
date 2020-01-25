@@ -1,45 +1,74 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
 
-type Mode int
-
 const (
-	Selection Mode = iota
-	Typing
+	mainMinX int = 0
+	mainMaxX int = 80
+	mainMinY int = 0
+	mainMaxY int = 15
 )
 
-func (m Mode) String() string {
-	return [...]string{"Selection", "Typing"}[m]
+type Viewport interface {
+	Render()
+	Handler(<-chan ui.Event) Viewport
 }
 
-func startLesson(lessons *widgets.List, test *widgets.Paragraph) {
-	test.Text = fmt.Sprintf("Lesson %d", lessons.SelectedRow+1)
+// Selection implements Viewport
+type Selection struct {
+	title   string
+	lessons *widgets.List
 }
 
-type Viewport struct {
-	items []ui.Drawable
+func (self Selection) Render() {
+	ui.Render(self.lessons)
 }
 
-func (v *Viewport) Render() {
-	ui.Clear()
-	for _, item := range v.items {
-		ui.Render(item)
+func (self Selection) Handler(e <-chan ui.Event) Viewport {
+	event := <-e
+	switch event.ID {
+	case "<C-c>":
+		os.Exit(0)
+	case "<Up>", "k":
+		self.lessons.ScrollUp()
+	case "<Down>", "j":
+		self.lessons.ScrollDown()
+	case "<Enter>":
+		return createTyping()
 	}
+	return self
 }
 
-func main() {
-	if err := ui.Init(); err != nil {
-		log.Fatalf("failed to initialize termui: %v", err)
-	}
-	defer ui.Close()
+// Typing implements Viewport
+type Typing struct {
+	title     string
+	paragraph *widgets.Paragraph
+}
 
+func (self Typing) Render() {
+	ui.Render(self.paragraph)
+}
+
+func (self Typing) Handler(e <-chan ui.Event) Viewport {
+	event := <-e
+	switch event.ID {
+	case "<C-c>":
+		os.Exit(0)
+	case "<Escape>":
+		return createSelection()
+	default:
+		self.paragraph.Text += event.ID
+	}
+	return self
+}
+
+func createSelection() Selection {
 	lessons := widgets.NewList()
 	lessons.Title = "Lessons"
 	lessons.Rows = []string{
@@ -54,25 +83,41 @@ func main() {
 		"Lesson 9",
 		"Lesson 10",
 	}
-	lessons.SetRect(0, 0, 80, 5)
+	lessons.SetRect(mainMinX, mainMinY, mainMaxX, mainMaxY)
 	lessons.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
-	items := []ui.Drawable{lessons}
-	selectionUi := Viewport{items}
+	return Selection{
+		title:   "Selection",
+		lessons: lessons,
+	}
+}
 
-	selectionUi.Render()
+func createTyping() Typing {
+	paragraph := widgets.NewParagraph()
+	paragraph.Title = "Paragraph"
+	paragraph.Text = ""
+	paragraph.SetRect(mainMinX, mainMinY, mainMaxX, mainMaxY)
+
+	return Typing{
+		title:     "Typing",
+		paragraph: paragraph,
+	}
+
+}
+
+func main() {
+	if err := ui.Init(); err != nil {
+		log.Fatalf("failed to initialize termui: %v", err)
+	}
+	defer ui.Close()
+
+	var view Viewport
+	view = createSelection()
+	view.Render()
 
 	uiEvents := ui.PollEvents()
 	for {
-		e := <-uiEvents
-		switch e.ID {
-		case "q", "<C-c>":
-			return
-		case "j":
-			lessons.ScrollDown()
-		case "k":
-			lessons.ScrollUp()
-		}
-		selectionUi.Render()
+		view = view.Handler(uiEvents)
+		view.Render()
 	}
 
 }
