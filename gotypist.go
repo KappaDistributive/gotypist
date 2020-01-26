@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -152,11 +151,11 @@ func createSelection() Selection {
 // TODO: load lesson from files
 func createTyping() Typing {
 	display := widgets.NewParagraph()
-	display.Title = "Display"
+	display.Title = ""
 	display.SetRect(MainMinX, MainMinY, MainMaxX, 5)
 
 	input := widgets.NewParagraph()
-	input.Title = fmt.Sprintf("%d", display.Inner.Dx()) //"Paragraph"
+	input.Title = ""
 	input.Text = Cursor
 	input.SetRect(MainMinX, 6, MainMaxX, 9)
 	words := []string{
