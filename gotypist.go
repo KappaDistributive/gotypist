@@ -9,13 +9,14 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
-const Tabwidth int = 4
-
+// Configurations
 const (
-	MainMinX int = 0
-	MainMaxX int = 80
-	MainMinY int = 0
-	MainMaxY int = 15
+	Tabwidth int    = 4
+	Cursor   string = "\u2588"
+	MainMinX int    = 0
+	MainMaxX int    = 80
+	MainMinY int    = 0
+	MainMaxY int    = 15
 )
 
 type Viewport interface {
@@ -69,17 +70,17 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 	case "<Escape>":
 		return createSelection()
 	case "<Space>":
-		self.paragraph.Text = text[:length-3] + " " + text[length-3:]
+		self.paragraph.Text = text[:length-len(Cursor)] + " " + text[length-len(Cursor):]
 	case "<Tab>":
-		self.paragraph.Text = text[:length-3] + strings.Repeat(" ", Tabwidth) + text[length-3:]
+		self.paragraph.Text = text[:length-len(Cursor)] + strings.Repeat(" ", Tabwidth) + text[length-len(Cursor):]
 	case "<Enter>":
-		self.paragraph.Text = text[:length-3] + "\n" + text[length-3:]
+		self.paragraph.Text = text[:length-len(Cursor)] + "\n" + text[length-len(Cursor):]
 	case "<Backspace>":
-		if length > 3 {
-			self.paragraph.Text = text[:length-4] + text[length-3:]
+		if length > len(Cursor) {
+			self.paragraph.Text = text[:length-4] + text[length-len(Cursor):]
 		}
 	default:
-		self.paragraph.Text = text[:length-3] + event.ID + text[length-3:]
+		self.paragraph.Text = text[:length-len(Cursor)] + event.ID + text[length-len(Cursor):]
 	}
 	return self
 }
@@ -110,7 +111,7 @@ func createSelection() Selection {
 func createTyping() Typing {
 	paragraph := widgets.NewParagraph()
 	paragraph.Title = "Paragraph"
-	paragraph.Text = "\u2588"
+	paragraph.Text = Cursor
 	paragraph.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 
 	return Typing{
