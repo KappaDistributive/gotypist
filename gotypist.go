@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -63,12 +64,17 @@ type Typing struct {
 	end       int
 }
 
-func (self Typing) Render() {
-	text := strings.Join(self.words[self.start:self.newline], " ")
+func getDisplayText(words []string, start, newline, end int) string {
+	length := len(words)
+	text := strings.Join(words[start:utils.Min(length, newline)], " ")
 	text += "\n"
-	text += strings.Join(self.words[self.newline:self.end], " ")
+	text += strings.Join(words[utils.Min(length, newline):utils.Min(length, end)], " ")
 
-	self.display.Text = text
+	return text
+}
+
+func (self Typing) Render() {
+	self.display.Text = getDisplayText(self.words, self.start, self.newline, self.end)
 	ui.Render(self.display, self.input)
 }
 
@@ -94,16 +100,13 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 			self.newline = self.end
 			self.end += 2
 			self.end = utils.Min(self.end, len(self.words))
-		}
 
-		self.input.Text = Cursor //text[:length-len(Cursor)] + " " + text[length-len(Cursor):]
+		}
+		self.input.Text = Cursor
 	case "<Tab>", "<Enter>":
-		//self.input.Text = text[:length-len(Cursor)] + strings.Repeat(" ", Tabwidth) + text[length-len(Cursor):]
-	//case "<Enter>":
-	//	self.input.Text = text[:length-len(Cursor)] + "\n" + text[length-len(Cursor):]
 	case "<Backspace>":
 		if length > len(Cursor) {
-			self.input.Text = text[:length-4] + text[length-len(Cursor):]
+			self.input.Text = text[:length-len(Cursor)-1] + text[length-len(Cursor):]
 		}
 	default:
 		self.input.Text = text[:length-len(Cursor)] + event.ID + text[length-len(Cursor):]
@@ -141,38 +144,94 @@ func createTyping() Typing {
 	display.SetRect(MainMinX, MainMinY, MainMaxX, 5)
 
 	input := widgets.NewParagraph()
-	input.Title = "Paragraph"
+	input.Title = fmt.Sprintf("%d", display.Inner.Dx()) //"Paragraph"
 	input.Text = Cursor
 	input.SetRect(MainMinX, 6, MainMaxX, 9)
+	words := []string{
+		"The",
+		"quick",
+		"brown",
+		"fox",
+		"jumps",
+		"over",
+		"the",
+		"lazy",
+		"dog.",
+		"The",
+		"quick",
+		"brown",
+		"fox",
+		"jumps",
+		"over",
+		"the",
+		"lazy",
+		"dog.",
+		"The",
+		"quick",
+		"brown",
+		"fox",
+		"jumps",
+		"over",
+		"the",
+		"lazy",
+		"dog.",
+		"The",
+		"quick",
+		"brown",
+		"fox",
+		"jumps",
+		"over",
+		"the",
+		"lazy",
+		"dog."}
+	start := 0
+	newline := utils.CalculateLineBreak(display.Inner.Dx(), words)
+	end := newline + utils.CalculateLineBreak(display.Inner.Dx(), words[newline:])
 
 	return Typing{
 		title:     "Typing",
 		input:     input,
 		display:   display,
-		words:     []string{"The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog."},
+		words:     words,
 		cursorPos: 0,
-		start:     0,
-		newline:   2,
-		end:       4,
+		start:     start,
+		newline:   newline,
+		end:       end,
 	}
 
 }
 
-func main() {
+func initialize(view *Viewport) {
+	// initialize ui
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
+
+	// create config directories
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// TODO: make config path configurable
+	if err := os.MkdirAll(home+"/.config/gotypist/lessons", 0755); err != nil {
+		log.Fatal(err)
+	}
+
+	*view = createSelection()
+	(*view).Render()
+
+}
+
+func main() {
+	var view Viewport
+	initialize(&view)
 	defer ui.Close()
 
-	var view Viewport
-	view = createSelection()
-	view.Render()
-
+	// event loop
 	uiEvents := ui.PollEvents()
 	for {
 		view = view.Handler(uiEvents)
 		ui.Clear()
 		view.Render()
 	}
-
 }
