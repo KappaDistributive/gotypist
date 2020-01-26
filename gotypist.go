@@ -14,12 +14,14 @@ import (
 
 // Configurations
 const (
-	Tabwidth int    = 4
-	Cursor   string = "\u2588"
-	MainMinX int    = 0
-	MainMaxX int    = 80
-	MainMinY int    = 0
-	MainMaxY int    = 15
+	Tabwidth  int    = 4
+	Cursor    string = "\u2588"
+	MainMinX  int    = 0
+	MainMaxX  int    = 80
+	MainMinY  int    = 0
+	MainMaxY  int    = 15
+	CorrectFg string = "green"
+	FalseFg   string = "red"
 )
 
 type Viewport interface {
@@ -90,6 +92,7 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		return createSelection()
 	// TODO: replace ad-hoc text handling
 	case "<Space>":
+		checkWord(self.input.Text, self.cursorPos, &self.words)
 		self.cursorPos += 1
 		if self.cursorPos == len(self.words) {
 			// end the game
@@ -98,9 +101,7 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		if self.cursorPos == self.newline {
 			self.start = self.newline
 			self.newline = self.end
-			self.end += 2
-			self.end = utils.Min(self.end, len(self.words))
-
+			self.end = self.newline + utils.CalculateLineBreak(self.display.Inner.Dx(), self.words[self.newline:])
 		}
 		self.input.Text = Cursor
 	case "<Tab>", "<Enter>":
@@ -112,6 +113,17 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		self.input.Text = text[:length-len(Cursor)] + event.ID + text[length-len(Cursor):]
 	}
 	return self
+}
+
+func checkWord(word string, cursorPos int, words *[]string) {
+	if ref := (*words)[cursorPos]; strings.Trim(word, Cursor) == ref {
+		// input is correct
+		(*words)[cursorPos] = "[" + ref + "](fg:" + CorrectFg + ")"
+	} else {
+		// input is false
+		(*words)[cursorPos] = "[" + ref + "](fg:" + FalseFg + ")"
+
+	}
 }
 
 func createSelection() Selection {
