@@ -57,13 +57,24 @@ func (self Typing) Render() {
 
 func (self Typing) Handler(e <-chan ui.Event) Viewport {
 	event := <-e
+	text := self.paragraph.Text
+	length := len(text)
+
 	switch event.ID {
 	case "<C-c>":
 		os.Exit(0)
 	case "<Escape>":
 		return createSelection()
+	case "<Space>":
+		self.paragraph.Text = text[:length-3] + " " + text[length-3:]
+	case "<Enter>":
+		self.paragraph.Text = text[:length-3] + "\n" + text[length-3:]
+	case "<Backspace>":
+		if length > 3 {
+			self.paragraph.Text = text[:length-4] + text[length-3:]
+		}
 	default:
-		self.paragraph.Text += event.ID
+		self.paragraph.Text = text[:length-3] + event.ID + text[length-3:]
 	}
 	return self
 }
@@ -94,7 +105,7 @@ func createSelection() Selection {
 func createTyping() Typing {
 	paragraph := widgets.NewParagraph()
 	paragraph.Title = "Paragraph"
-	paragraph.Text = ""
+	paragraph.Text = "\u2588"
 	paragraph.SetRect(mainMinX, mainMinY, mainMaxX, mainMaxY)
 
 	return Typing{
