@@ -7,6 +7,8 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+
+	"github.com/KappaDistributive/gotypist/utils"
 )
 
 // Configurations
@@ -52,16 +54,27 @@ func (self Selection) Handler(e <-chan ui.Event) Viewport {
 // Typing implements Viewport
 type Typing struct {
 	title     string
-	paragraph *widgets.Paragraph
+	input     *widgets.Paragraph
+	display   *widgets.Paragraph
+	words     []string
+	cursorPos int
+	start     int
+	newline   int
+	end       int
 }
 
 func (self Typing) Render() {
-	ui.Render(self.paragraph)
+	text := strings.Join(self.words[self.start:self.newline], " ")
+	text += "\n"
+	text += strings.Join(self.words[self.newline:self.end], " ")
+
+	self.display.Text = text
+	ui.Render(self.display, self.input)
 }
 
 func (self Typing) Handler(e <-chan ui.Event) Viewport {
 	event := <-e
-	text := self.paragraph.Text
+	text := self.input.Text
 	length := len(text)
 
 	switch event.ID {
@@ -69,18 +82,31 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		os.Exit(0)
 	case "<Escape>":
 		return createSelection()
+	// TODO: replace ad-hoc text handling
 	case "<Space>":
-		self.paragraph.Text = text[:length-len(Cursor)] + " " + text[length-len(Cursor):]
-	case "<Tab>":
-		self.paragraph.Text = text[:length-len(Cursor)] + strings.Repeat(" ", Tabwidth) + text[length-len(Cursor):]
-	case "<Enter>":
-		self.paragraph.Text = text[:length-len(Cursor)] + "\n" + text[length-len(Cursor):]
+		self.cursorPos += 1
+		if self.cursorPos == len(self.words) {
+			// end the game
+			return createSelection()
+		}
+		if self.cursorPos == self.newline {
+			self.start = self.newline
+			self.newline = self.end
+			self.end += 2
+			self.end = utils.Min(self.end, len(self.words))
+		}
+
+		self.input.Text = Cursor //text[:length-len(Cursor)] + " " + text[length-len(Cursor):]
+	case "<Tab>", "<Enter>":
+		//self.input.Text = text[:length-len(Cursor)] + strings.Repeat(" ", Tabwidth) + text[length-len(Cursor):]
+	//case "<Enter>":
+	//	self.input.Text = text[:length-len(Cursor)] + "\n" + text[length-len(Cursor):]
 	case "<Backspace>":
 		if length > len(Cursor) {
-			self.paragraph.Text = text[:length-4] + text[length-len(Cursor):]
+			self.input.Text = text[:length-4] + text[length-len(Cursor):]
 		}
 	default:
-		self.paragraph.Text = text[:length-len(Cursor)] + event.ID + text[length-len(Cursor):]
+		self.input.Text = text[:length-len(Cursor)] + event.ID + text[length-len(Cursor):]
 	}
 	return self
 }
@@ -108,15 +134,26 @@ func createSelection() Selection {
 	}
 }
 
+// TODO: load lesson from files
 func createTyping() Typing {
-	paragraph := widgets.NewParagraph()
-	paragraph.Title = "Paragraph"
-	paragraph.Text = Cursor
-	paragraph.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
+	display := widgets.NewParagraph()
+	display.Title = "Display"
+	display.SetRect(MainMinX, MainMinY, MainMaxX, 5)
+
+	input := widgets.NewParagraph()
+	input.Title = "Paragraph"
+	input.Text = Cursor
+	input.SetRect(MainMinX, 6, MainMaxX, 9)
 
 	return Typing{
 		title:     "Typing",
-		paragraph: paragraph,
+		input:     input,
+		display:   display,
+		words:     []string{"The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog."},
+		cursorPos: 0,
+		start:     0,
+		newline:   2,
+		end:       4,
 	}
 
 }
@@ -134,6 +171,7 @@ func main() {
 	uiEvents := ui.PollEvents()
 	for {
 		view = view.Handler(uiEvents)
+		ui.Clear()
 		view.Render()
 	}
 
