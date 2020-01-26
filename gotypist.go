@@ -3,16 +3,19 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
 
+const Tabwidth int = 4
+
 const (
-	mainMinX int = 0
-	mainMaxX int = 80
-	mainMinY int = 0
-	mainMaxY int = 15
+	MainMinX int = 0
+	MainMaxX int = 80
+	MainMinY int = 0
+	MainMaxY int = 15
 )
 
 type Viewport interface {
@@ -67,6 +70,8 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		return createSelection()
 	case "<Space>":
 		self.paragraph.Text = text[:length-3] + " " + text[length-3:]
+	case "<Tab>":
+		self.paragraph.Text = text[:length-3] + strings.Repeat(" ", Tabwidth) + text[length-3:]
 	case "<Enter>":
 		self.paragraph.Text = text[:length-3] + "\n" + text[length-3:]
 	case "<Backspace>":
@@ -94,7 +99,7 @@ func createSelection() Selection {
 		"Lesson 9",
 		"Lesson 10",
 	}
-	lessons.SetRect(mainMinX, mainMinY, mainMaxX, mainMaxY)
+	lessons.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 	lessons.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
 	return Selection{
 		title:   "Selection",
@@ -106,7 +111,7 @@ func createTyping() Typing {
 	paragraph := widgets.NewParagraph()
 	paragraph.Title = "Paragraph"
 	paragraph.Text = "\u2588"
-	paragraph.SetRect(mainMinX, mainMinY, mainMaxX, mainMaxY)
+	paragraph.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 
 	return Typing{
 		title:     "Typing",
