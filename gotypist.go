@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -8,6 +9,9 @@ import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 
+	"gopkg.in/yaml.v2"
+
+	"fmt"
 	"github.com/KappaDistributive/gotypist/utils"
 )
 
@@ -23,9 +27,14 @@ const (
 	FalseFg   string = "red"
 )
 
+type Lesson struct {
+	Title   string
+	Content string
+}
+
 type Viewport interface {
-	Render()
-	Handler(<-chan ui.Event) Viewport
+	Render()                          // Render takes care of rendering the UI.
+	Handler(<-chan ui.Event) Viewport // Handler takes care of the event loop.
 }
 
 // Selection implements Viewport
@@ -48,7 +57,24 @@ func (self Selection) Handler(e <-chan ui.Event) Viewport {
 	case "<Down>", "j":
 		self.lessons.ScrollDown()
 	case "<Enter>":
-		return createTyping()
+		cursorPos := self.lessons.SelectedRow
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+		// TODO: Create test lessons if none exist, yet.
+		data, err := ioutil.ReadFile(fmt.Sprintf(home+"/.config/gotypist/lessons/%s.yaml", self.lessons.Rows[cursorPos]))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		lesson := Lesson{}
+
+		err = yaml.Unmarshal([]byte(data), &lesson)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return createTyping(lesson)
 	}
 	return self
 }
@@ -132,13 +158,6 @@ func createSelection() Selection {
 		"Lesson 1",
 		"Lesson 2",
 		"Lesson 3",
-		"Lesson 4",
-		"Lesson 5",
-		"Lesson 6",
-		"Lesson 7",
-		"Lesson 8",
-		"Lesson 9",
-		"Lesson 10",
 	}
 	lessons.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 	lessons.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
@@ -149,52 +168,16 @@ func createSelection() Selection {
 }
 
 // TODO: load lesson from files
-func createTyping() Typing {
+func createTyping(lesson Lesson) Typing {
 	display := widgets.NewParagraph()
-	display.Title = ""
+	display.Title = lesson.Title
 	display.SetRect(MainMinX, MainMinY, MainMaxX, 5)
 
 	input := widgets.NewParagraph()
 	input.Title = ""
 	input.Text = Cursor
 	input.SetRect(MainMinX, 6, MainMaxX, 9)
-	words := []string{
-		"The",
-		"quick",
-		"brown",
-		"fox",
-		"jumps",
-		"over",
-		"the",
-		"lazy",
-		"dog.",
-		"The",
-		"quick",
-		"brown",
-		"fox",
-		"jumps",
-		"over",
-		"the",
-		"lazy",
-		"dog.",
-		"The",
-		"quick",
-		"brown",
-		"fox",
-		"jumps",
-		"over",
-		"the",
-		"lazy",
-		"dog.",
-		"The",
-		"quick",
-		"brown",
-		"fox",
-		"jumps",
-		"over",
-		"the",
-		"lazy",
-		"dog."}
+	words := strings.Split(lesson.Content, " ")
 	start := 0
 	newline := utils.CalculateLineBreak(display.Inner.Dx(), words)
 	end := newline + utils.CalculateLineBreak(display.Inner.Dx(), words[newline:])
