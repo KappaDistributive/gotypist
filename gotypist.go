@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -8,10 +9,8 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
-
 	"gopkg.in/yaml.v2"
 
-	"fmt"
 	"github.com/KappaDistributive/gotypist/utils"
 )
 
@@ -60,18 +59,17 @@ func (self Selection) Handler(e <-chan ui.Event) Viewport {
 		cursorPos := self.lessons.SelectedRow
 		home, err := os.UserHomeDir()
 		if err != nil {
-			log.Fatal(err)
+			errorHandling(err)
 		}
 		// TODO: Create test lessons if none exist, yet.
 		data, err := ioutil.ReadFile(fmt.Sprintf(home+"/.config/gotypist/lessons/%s.yaml", self.lessons.Rows[cursorPos]))
 		if err != nil {
-			log.Fatal(err)
+			errorHandling(err)
 		}
 
 		lesson := Lesson{}
 
-		err = yaml.Unmarshal([]byte(data), &lesson)
-		if err != nil {
+		if err = yaml.Unmarshal([]byte(data), &lesson); err != nil {
 			log.Fatal(err)
 		}
 		return createTyping(lesson)
@@ -198,22 +196,26 @@ func createTyping(lesson Lesson) Typing {
 func initialize(view *Viewport) {
 	// initialize ui
 	if err := ui.Init(); err != nil {
-		log.Fatalf("failed to initialize termui: %v", err)
+		errorHandling(err)
 	}
 
 	// create config directories
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal(err)
+		errorHandling(err)
 	}
 	// TODO: make config path configurable
 	if err := os.MkdirAll(home+"/.config/gotypist/lessons", 0755); err != nil {
-		log.Fatal(err)
+		errorHandling(err)
 	}
 
 	*view = createSelection()
 	(*view).Render()
 
+}
+
+func errorHandling(err error) {
+	log.Fatal(err)
 }
 
 func main() {
