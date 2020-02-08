@@ -152,6 +152,7 @@ func checkWord(word string, cursorPos int, words *[]string) {
 func createSelection() Selection {
 	lessons := widgets.NewList()
 	lessons.Title = "Lessons"
+	// Create lessons.Rows from the content of the lessons directory.
 	lessons.Rows = []string{
 		"Lesson 1",
 		"Lesson 2",
@@ -165,7 +166,6 @@ func createSelection() Selection {
 	}
 }
 
-// TODO: load lesson from files
 func createTyping(lesson Lesson) Typing {
 	display := widgets.NewParagraph()
 	display.Title = lesson.Title
