@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -40,6 +41,17 @@ type Viewport interface {
 type Selection struct {
 	title   string
 	lessons *widgets.List
+}
+
+func (self Scoring) Handler(e <-chan ui.Event) Viewport {
+	event := <-e
+	switch event.ID {
+	case "<C-c>":
+		os.Exit(0)
+	case "<Enter>":
+		return createSelection()
+	}
+	return self
 }
 
 func (self Selection) Render() {
@@ -79,14 +91,18 @@ func (self Selection) Handler(e <-chan ui.Event) Viewport {
 
 // Typing implements Viewport
 type Typing struct {
-	title     string
-	input     *widgets.Paragraph
-	display   *widgets.Paragraph
-	words     []string
-	cursorPos int
-	start     int
-	newline   int
-	end       int
+	title             string
+	input             *widgets.Paragraph
+	display           *widgets.Paragraph
+	words             []string
+	cursorPos         int
+	start             int
+	newline           int
+	end               int
+	totalCharacters   int
+	started           bool
+	startTime         time.Time
+	correctCharacters int
 }
 
 func getDisplayText(words []string, start, newline, end int) string {
@@ -96,6 +112,11 @@ func getDisplayText(words []string, start, newline, end int) string {
 	text += strings.Join(words[utils.Min(length, newline):utils.Min(length, end)], " ")
 
 	return text
+}
+
+func (self Typing) Cpm() float64 {
+	return (60. * float64(self.correctCharacters) /
+		float64(time.Since(self.startTime).Seconds()))
 }
 
 func (self Typing) Render() {
@@ -115,10 +136,12 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		return createSelection()
 	// TODO: replace ad-hoc text handling
 	case "<Space>":
-		checkWord(self.input.Text, self.cursorPos, &self.words)
+		updateCpm(text, &self)
+		checkWord(text, self.cursorPos, &self.words)
 		self.cursorPos += 1
 		if self.cursorPos == len(self.words) {
 			// end the game
+			return createScoring(self.Cpm())
 			return createSelection()
 		}
 		if self.cursorPos == self.newline {
@@ -133,9 +156,37 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 			self.input.Text = text[:length-len(Cursor)-1] + text[length-len(Cursor):]
 		}
 	default:
+		if !self.started {
+			self.startTime = time.Now()
+			self.started = true
+		}
 		self.input.Text = text[:length-len(Cursor)] + event.ID + text[length-len(Cursor):]
 	}
 	return self
+}
+
+// Scoring implements Viewport
+type Scoring struct {
+	title string
+	card  *widgets.Paragraph
+}
+
+func (self Scoring) Render() {
+	ui.Render(self.card)
+}
+
+func updateCpm(word string, typing *Typing) {
+	correctCharacters := 0
+	correctWord := typing.words[typing.cursorPos]
+	for pos, char := range correctWord {
+		if pos < len(word) && word[pos] == byte(char) {
+			correctCharacters += 1
+		}
+	}
+	typing.correctCharacters += correctCharacters + 1 // +1 for the space
+
+	cpm := typing.Cpm()
+	typing.input.Title = fmt.Sprintf("CPM: %.0f", cpm)
 }
 
 func checkWord(word string, cursorPos int, words *[]string) {
@@ -146,6 +197,18 @@ func checkWord(word string, cursorPos int, words *[]string) {
 		// input is false
 		(*words)[cursorPos] = "[" + ref + "](fg:" + FalseFg + ")"
 
+	}
+}
+
+func createScoring(cpm float64) Scoring {
+	card := widgets.NewParagraph()
+	card.Title = "Scoring Card"
+	card.Text = fmt.Sprintf("CPM: %.0f", cpm)
+
+	card.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
+	return Scoring{
+		title: "Scoring",
+		card:  card,
 	}
 }
 
@@ -181,14 +244,18 @@ func createTyping(lesson Lesson) Typing {
 	end := newline + utils.CalculateLineBreak(display.Inner.Dx(), words[newline:])
 
 	return Typing{
-		title:     "Typing",
-		input:     input,
-		display:   display,
-		words:     words,
-		cursorPos: 0,
-		start:     start,
-		newline:   newline,
-		end:       end,
+		title:             "Typing",
+		input:             input,
+		display:           display,
+		words:             words,
+		cursorPos:         0,
+		start:             start,
+		newline:           newline,
+		end:               end,
+		totalCharacters:   len(lesson.Content) + 1, // +1 for the final space
+		started:           false,
+		startTime:         time.Now(),
+		correctCharacters: 0,
 	}
 
 }
