@@ -48,7 +48,7 @@ func (self Scoring) Handler(e <-chan ui.Event) Viewport {
 	switch event.ID {
 	case "<C-c>":
 		os.Exit(0)
-	case "<Space>", "<Enter>":
+	case "<Enter>":
 		return createSelection()
 	}
 	return self
