@@ -87,7 +87,6 @@ func (self Typing) Cpm() float64 {
 func updateCpm(word string, typing *Typing) {
 	correctCharacters := 0
 	correctWord := typing.words[typing.cursorPos]
-	typing.display.Title = word
 	if word == correctWord {
 		correctCharacters = len(word) + 1 // +1 for the space
 	}
