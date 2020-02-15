@@ -26,14 +26,22 @@ const (
 	FalseFg   string = "red"
 )
 
+// Quit implements error
+// Throw this when quitting the app.
+type Quit struct{}
+
+func (self Quit) Error() string {
+	return "Quit program."
+}
+
 type Lesson struct {
 	Title   string
 	Content string
 }
 
 type Viewport interface {
-	Render()                          // Render takes care of rendering the UI.
-	Handler(<-chan ui.Event) Viewport // Handler takes care of the event loop.
+	Render()                                   // Render takes care of rendering the UI.
+	Handler(<-chan ui.Event) (Viewport, error) // Handler takes care of the event loop.
 }
 
 // Selection implements Viewport
@@ -42,26 +50,26 @@ type Selection struct {
 	lessons *widgets.List
 }
 
-func (self Scoring) Handler(e <-chan ui.Event) Viewport {
+func (self Scoring) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	switch event.ID {
 	case "<C-c>":
-		os.Exit(0)
+		return createSelection(), Quit{}
 	case "<Enter>":
-		return createSelection()
+		return createSelection(), nil
 	}
-	return self
+	return self, nil
 }
 
 func (self Selection) Render() {
 	ui.Render(self.lessons)
 }
 
-func (self Selection) Handler(e <-chan ui.Event) Viewport {
+func (self Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	switch event.ID {
 	case "<C-c>":
-		os.Exit(0)
+		return self, Quit{}
 	case "<Up>", "k":
 		self.lessons.ScrollUp()
 	case "<Down>", "j":
@@ -83,9 +91,9 @@ func (self Selection) Handler(e <-chan ui.Event) Viewport {
 		if err = yaml.Unmarshal([]byte(data), &lesson); err != nil {
 			log.Fatal(err)
 		}
-		return createTyping(lesson)
+		return createTyping(lesson), nil
 	}
-	return self
+	return self, nil
 }
 
 // Typing implements Viewport
@@ -123,16 +131,16 @@ func (self Typing) Render() {
 	ui.Render(self.display, self.input)
 }
 
-func (self Typing) Handler(e <-chan ui.Event) Viewport {
+func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	text := self.input.Text
 	length := len(text)
 
 	switch event.ID {
 	case "<C-c>":
-		os.Exit(0)
+		return self, Quit{}
 	case "<Escape>":
-		return createSelection()
+		return createSelection(), nil
 	// TODO: replace ad-hoc text handling
 	case "<Space>":
 		updateCpm(text, &self)
@@ -140,8 +148,8 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		self.cursorPos += 1
 		if self.cursorPos == len(self.words) {
 			// end the game
-			return createScoring(self.Cpm())
-			return createSelection()
+			return createScoring(self.Cpm()), nil
+			return createSelection(), nil
 		}
 		if self.cursorPos == self.newline {
 			self.start = self.newline
@@ -161,7 +169,7 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		}
 		self.input.Text = text[:length-len(Cursor)] + event.ID + text[length-len(Cursor):]
 	}
-	return self
+	return self, nil
 }
 
 // Scoring implements Viewport
@@ -347,7 +355,12 @@ func main() {
 	// event loop
 	uiEvents := ui.PollEvents()
 	for {
-		view = view.Handler(uiEvents)
+		view, err := view.Handler(uiEvents)
+		if err != nil {
+			ui.Close()
+			os.Exit(0)
+		}
+
 		ui.Clear()
 		view.Render()
 	}
