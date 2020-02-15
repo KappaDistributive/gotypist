@@ -12,8 +12,6 @@ import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"gopkg.in/yaml.v2"
-
-	"github.com/KappaDistributive/gotypist/utils"
 )
 
 // Configurations
@@ -108,9 +106,9 @@ type Typing struct {
 
 func getDisplayText(words []string, start, newline, end int) string {
 	length := len(words)
-	text := strings.Join(words[start:utils.Min(length, newline)], " ")
+	text := strings.Join(words[start:Min(length, newline)], " ")
 	text += "\n"
-	text += strings.Join(words[utils.Min(length, newline):utils.Min(length, end)], " ")
+	text += strings.Join(words[Min(length, newline):Min(length, end)], " ")
 
 	return text
 }
@@ -148,7 +146,7 @@ func (self Typing) Handler(e <-chan ui.Event) Viewport {
 		if self.cursorPos == self.newline {
 			self.start = self.newline
 			self.newline = self.end
-			self.end = self.newline + utils.CalculateLineBreak(self.display.Inner.Dx(), self.words[self.newline:])
+			self.end = self.newline + CalculateLineBreak(self.display.Inner.Dx(), self.words[self.newline:])
 		}
 		self.input.Text = Cursor
 	case "<Tab>", "<Enter>":
@@ -252,8 +250,8 @@ func createTyping(lesson Lesson) Typing {
 	input.SetRect(MainMinX, 6, MainMaxX, 9)
 	words := strings.Split(lesson.Content, " ")
 	start := 0
-	newline := utils.CalculateLineBreak(display.Inner.Dx(), words)
-	end := newline + utils.CalculateLineBreak(display.Inner.Dx(), words[newline:])
+	newline := CalculateLineBreak(display.Inner.Dx(), words)
+	end := newline + CalculateLineBreak(display.Inner.Dx(), words[newline:])
 
 	return Typing{
 		title:             "Typing",
