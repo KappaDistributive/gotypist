@@ -23,6 +23,7 @@ type Typing struct {
 	started           bool
 	startTime         time.Time
 	correctCharacters int
+	typedCharaceters  int
 }
 
 func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
@@ -42,7 +43,8 @@ func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 		self.cursorPos += 1
 		if self.cursorPos == len(self.words) {
 			// end the game
-			return createScoring(self.Cpm()), nil
+			duration := time.Since(self.startTime)
+			return CreateScoring(self.correctCharacters, self.totalCharacters, duration), nil
 		}
 		if self.cursorPos == self.newline {
 			self.start = self.newline
@@ -79,20 +81,14 @@ func getDisplayText(words []string, start, newline, end int) string {
 	return text
 }
 
-func (self Typing) Cpm() float64 {
-	return (60. * float64(self.correctCharacters) /
-		float64(time.Since(self.startTime).Seconds()))
-}
-
 func updateCpm(word string, typing *Typing) {
-	correctCharacters := 0
 	correctWord := typing.words[typing.cursorPos]
 	if word == correctWord {
-		correctCharacters = len(word) + 1 // +1 for the space
+		typing.correctCharacters += len(word) + 1 // +1 for the space
 	}
-	typing.correctCharacters += correctCharacters
+	typing.typedCharaceters += len(word) + 1 // +1 for the space
 
-	cpm := typing.Cpm()
+	cpm := Cpm(typing.correctCharacters, time.Since(typing.startTime))
 	typing.input.Title = fmt.Sprintf("CPM: %.0f", cpm)
 }
 

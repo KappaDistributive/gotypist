@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -28,11 +29,20 @@ func (self Scoring) Render() {
 	ui.Render(self.card)
 }
 
-func createScoring(cpm float64) Scoring {
+func Cpm(correctCharacters int, duration time.Duration) float64 {
+	return 60.0 * float64(correctCharacters) / float64(duration.Seconds())
+}
+
+func Accuracy(correctCharacters int, typedCharacters int) float64 {
+	return float64(correctCharacters) / float64(typedCharacters)
+}
+
+func CreateScoring(correctCharacters int, totalCharacters int, duration time.Duration) Scoring {
+	cpm := Cpm(correctCharacters, duration)
+	accuracy := Accuracy(correctCharacters, totalCharacters)
 	card := widgets.NewParagraph()
 	card.Title = "Scoring Card"
-	card.Text = fmt.Sprintf("CPM: %.0f", cpm)
-
+	card.Text = fmt.Sprintf("CPM: %.0f\nAccuracy: %.2f%%", cpm, 100.0*accuracy)
 	card.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 	return Scoring{
 		title: "Scoring",
