@@ -54,7 +54,7 @@ func (self Scoring) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	switch event.ID {
 	case "<C-c>":
-		return createSelection(), Quit{}
+		return self, Quit{}
 	case "<Enter>":
 		return createSelection(), nil
 	}
@@ -89,7 +89,7 @@ func (self Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 		lesson := Lesson{}
 
 		if err = yaml.Unmarshal([]byte(data), &lesson); err != nil {
-			log.Fatal(err)
+			errorHandling(err)
 		}
 		return createTyping(lesson), nil
 	}
@@ -149,7 +149,6 @@ func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 		if self.cursorPos == len(self.words) {
 			// end the game
 			return createScoring(self.Cpm()), nil
-			return createSelection(), nil
 		}
 		if self.cursorPos == self.newline {
 			self.start = self.newline
@@ -275,7 +274,6 @@ func createTyping(lesson Lesson) Typing {
 		startTime:         time.Now(),
 		correctCharacters: 0,
 	}
-
 }
 
 func initialize(view *Viewport) {
@@ -351,16 +349,15 @@ func main() {
 	var view Viewport
 	initialize(&view)
 	defer ui.Close()
+	var err error
 
 	// event loop
 	uiEvents := ui.PollEvents()
 	for {
-		view, err := view.Handler(uiEvents)
+		view, err = view.Handler(uiEvents)
 		if err != nil {
-			ui.Close()
-			os.Exit(0)
+			return
 		}
-
 		ui.Clear()
 		view.Render()
 	}
