@@ -27,7 +27,7 @@ type Typing struct {
 
 func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
-	text := self.input.Text
+	text := dropCursor(self.input.Text)
 	length := len(text)
 
 	switch event.ID {
@@ -52,15 +52,15 @@ func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 		self.input.Text = Cursor
 	case "<Tab>", "<Enter>":
 	case "<Backspace>":
-		if length > len(Cursor) {
-			self.input.Text = text[:length-len(Cursor)-1] + text[length-len(Cursor):]
+		if length > 0 {
+			self.input.Text = text[:length-1] + Cursor
 		}
 	default:
 		if !self.started {
 			self.startTime = time.Now()
 			self.started = true
 		}
-		self.input.Text = text[:length-len(Cursor)] + event.ID + text[length-len(Cursor):]
+		self.input.Text = text + event.ID + Cursor
 	}
 	return self, nil
 }
@@ -87,12 +87,11 @@ func (self Typing) Cpm() float64 {
 func updateCpm(word string, typing *Typing) {
 	correctCharacters := 0
 	correctWord := typing.words[typing.cursorPos]
-	for pos, char := range correctWord {
-		if pos < len(word) && word[pos] == byte(char) {
-			correctCharacters += 1
-		}
+	typing.display.Title = word
+	if word == correctWord {
+		correctCharacters = len(word) + 1 // +1 for the space
 	}
-	typing.correctCharacters += correctCharacters + 1 // +1 for the space
+	typing.correctCharacters += correctCharacters
 
 	cpm := typing.Cpm()
 	typing.input.Title = fmt.Sprintf("CPM: %.0f", cpm)

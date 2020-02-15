@@ -23,3 +23,7 @@ func CalculateLineBreak(lineLength int, words []string) int {
 
 	}
 }
+
+func dropCursor(word string) string {
+	return strings.ReplaceAll(word, Cursor, "")
+}
