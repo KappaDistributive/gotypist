@@ -91,7 +91,7 @@ func updateCpm(word string, typing *Typing) {
 	if word == correctWord {
 		correctCharacters = len(word) + 1 // +1 for the space
 	}
-	typing.correctCharacters += correctCharacters // +1 for the space
+	typing.correctCharacters += correctCharacters
 
 	cpm := typing.Cpm()
 	typing.input.Title = fmt.Sprintf("CPM: %.0f", cpm)
