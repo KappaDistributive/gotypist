@@ -1,5 +1,6 @@
-run:
-	go run *.go
-
 build:
-	go build -o gotypist
+	@echo Compiling gotypist.
+	go build -o gotypist ./src
+
+run: build 
+	./gotypist
