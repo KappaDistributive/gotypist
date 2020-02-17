@@ -2,6 +2,7 @@ package main
 
 import "strings"
 
+// Min(x, y) returns the minimum of integers x and y.
 func Min(x, y int) int {
 	if x < y {
 		return x
@@ -9,6 +10,7 @@ func Min(x, y int) int {
 	return y
 }
 
+// TODO
 func CalculateLineBreak(lineLength int, words []string) int {
 	if len(words) == 0 {
 		return 0
@@ -20,10 +22,10 @@ func CalculateLineBreak(lineLength int, words []string) int {
 		} else {
 			return length
 		}
-
 	}
 }
 
-func dropCursor(word string) string {
+// DropCursor removes all occurances of `Cursor` in a given word.
+func DropCursor(word string) string {
 	return strings.ReplaceAll(word, Cursor, "")
 }

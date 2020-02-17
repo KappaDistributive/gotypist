@@ -28,7 +28,7 @@ type Typing struct {
 
 func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
-	text := dropCursor(self.input.Text)
+	text := DropCursor(self.input.Text)
 	length := len(text)
 
 	switch event.ID {
