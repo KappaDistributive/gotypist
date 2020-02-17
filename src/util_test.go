@@ -36,9 +36,9 @@ func TestCalculateLineBreak(t *testing.T) {
 		lineBreak := CalculateLineBreak(testLineLengths[idx], line)
 		if lineBreak != testLineBreaks[idx] {
 			t.Errorf(
-				"CalculateLineBreak(%d, %s) = %d; want %d",
+				"CalculateLineBreak(%d, { %s }) = %d; want %d",
 				testLineLengths[idx],
-				strings.Join(testLines[idx], ", "),
+				strings.Join(testLines[idx], ", ")+",",
 				lineBreak,
 				testLineBreaks[idx])
 		}
