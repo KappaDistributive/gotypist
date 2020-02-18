@@ -9,6 +9,6 @@ jobs:
     - name: run
       uses: cedrickring/golang-action@1.4.1
       env:
-        PROJECT_PATH: "./path/in/my/project"
+        PROJECT_PATH: "./src"
       with:
-        args: go test -v ./src
+        args: go test -v ./...
