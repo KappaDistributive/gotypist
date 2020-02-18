@@ -1,8 +1,9 @@
-on: push
-  branches:
-    - master
-    - develop
-    - 'releases/**'
+on: 
+  push:
+    branches:
+      - master
+      - develop
+      - 'releases/**'
 name: CI/CD
 jobs:
   checks:
