@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -14,7 +12,8 @@ import (
 // Selection implements Viewport
 type Selection struct {
 	title   string
-	lessons *widgets.List
+	lessons []Lesson
+	content *widgets.List
 }
 
 func (self Selection) Handler(e <-chan ui.Event) (Viewport, error) {
@@ -23,33 +22,20 @@ func (self Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 	case "<C-c>":
 		return self, Quit{}
 	case "<Up>", "k":
-		self.lessons.ScrollUp()
+		self.content.ScrollUp()
 	case "<Down>", "j":
-		self.lessons.ScrollDown()
+		self.content.ScrollDown()
 	case "<Enter>":
-		cursorPos := self.lessons.SelectedRow
-		home, err := os.UserHomeDir()
-		if err != nil {
-			errorHandling(err)
-		}
-		// TODO: Create test lessons if none exist, yet.
-		data, err := ioutil.ReadFile(fmt.Sprintf(home+"/.config/gotypist/lessons/%s.yaml", self.lessons.Rows[cursorPos]))
-		if err != nil {
-			errorHandling(err)
-		}
+		cursorPos := self.content.SelectedRow
+		lesson := self.lessons[cursorPos]
 
-		lesson := Lesson{}
-
-		if err = yaml.Unmarshal([]byte(data), &lesson); err != nil {
-			errorHandling(err)
-		}
 		return createTyping(lesson), nil
 	}
 	return self, nil
 }
 
 func (self Selection) Render() {
-	ui.Render(self.lessons)
+	ui.Render(self.content)
 }
 
 func createSelection() Selection {
@@ -58,24 +44,34 @@ func createSelection() Selection {
 		errorHandling(err)
 	}
 
-	lessons := widgets.NewList()
-	lessons.Title = "Lessons"
-	// Create lessons.Rows from the content of the lessons directory.
-	lessons.Rows = []string{}
-	files, err := ioutil.ReadDir(home + "/.config/gotypist/lessons")
+	// Load lessons from directory
+	content := widgets.NewList()
+	content.Title = "Lessons"
+	content.Rows = []string{}
+	lessons := []Lesson{}
+	files, err := ioutil.ReadDir(home + LessonsDir)
 	if err != nil {
 		errorHandling(err)
 	}
-	for _, file := range files {
-		lesson_name_splits := strings.Split(file.Name(), ".")
-		lesson_name := strings.Join(lesson_name_splits[:len(lesson_name_splits)-1], "")
-		lessons.Rows = append(lessons.Rows, lesson_name)
+	for _, fileinfo := range files {
+		lesson := Lesson{}
+		data, err := ioutil.ReadFile(home + LessonsDir + "/" + fileinfo.Name())
+		if err != nil {
+			errorHandling(err)
+		}
+		if err = yaml.Unmarshal(data, &lesson); err != nil {
+			errorHandling(err)
+		}
+		lessons = append(lessons, lesson)
+		lesson_name := lesson.Title
+		content.Rows = append(content.Rows, lesson_name)
 	}
 
-	lessons.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
-	lessons.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
+	content.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
+	content.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
 	return Selection{
 		title:   "Selection",
 		lessons: lessons,
+		content: content,
 	}
 }

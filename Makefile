@@ -7,4 +7,4 @@ build:
 
 test:
 	@echo Testing gotypist.
-	go test ./src
+	go test -v ./src
