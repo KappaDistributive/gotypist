@@ -4,6 +4,7 @@ on:
       - master
       - develop
       - 'releases/**'
+      - KappaDistributive-patch-1
 name: CI/CD
 jobs:
   checks:
