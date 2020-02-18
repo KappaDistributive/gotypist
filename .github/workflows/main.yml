@@ -1,12 +1,12 @@
 on: push
-name: My cool Action
+name: CI/CD
 jobs:
   checks:
     name: run
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: run
+    - name: test
       uses: cedrickring/golang-action@1.4.1
       env:
         PROJECT_PATH: "./src"
