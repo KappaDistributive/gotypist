@@ -1,0 +1,19 @@
+on: 
+  push:
+    branches:
+      - master
+      - develop
+      - 'releases/**'
+name: CI/CD
+jobs:
+  checks:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: test
+      uses: cedrickring/golang-action@1.4.1
+      env:
+        PROJECT_PATH: "./src"
+      with:
+        args: go test -v ./...
