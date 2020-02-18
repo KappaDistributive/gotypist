@@ -1,8 +1,12 @@
 on: push
+  branches:
+    - master
+    - develop
+    - 'releases/**'
 name: CI/CD
 jobs:
   checks:
-    name: run
+    name: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
