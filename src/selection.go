@@ -11,9 +11,10 @@ import (
 
 // Selection implements Viewport
 type Selection struct {
-	title   string
-	lessons []Lesson
-	content *widgets.List
+	title          string
+	lessons        []Lesson
+	content        *widgets.List
+	savedCursorPos int
 }
 
 func (self Selection) Handler(e <-chan ui.Event) (Viewport, error) {
@@ -26,10 +27,10 @@ func (self Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 	case "<Down>", "j":
 		self.content.ScrollDown()
 	case "<Enter>":
-		cursorPos := self.content.SelectedRow
-		lesson := self.lessons[cursorPos]
+		self.savedCursorPos = self.content.SelectedRow
+		lesson := self.lessons[self.savedCursorPos]
 
-		return createTyping(lesson), nil
+		return createTyping(lesson, self.savedCursorPos), nil
 	}
 	return self, nil
 }
@@ -38,7 +39,7 @@ func (self Selection) Render() {
 	ui.Render(self.content)
 }
 
-func createSelection() Selection {
+func createSelection(cursorPos int) Selection {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		errorHandling(err)
@@ -69,9 +70,11 @@ func createSelection() Selection {
 
 	content.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 	content.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
+	content.SelectedRow = cursorPos
 	return Selection{
-		title:   "Selection",
-		lessons: lessons,
-		content: content,
+		title:          "Selection",
+		lessons:        lessons,
+		content:        content,
+		savedCursorPos: cursorPos,
 	}
 }

@@ -30,7 +30,7 @@ func initialize(view *Viewport) {
 	// if no lessons exist, add sample lessons
 	createSampleLessons()
 
-	*view = createSelection()
+	*view = createSelection(0)
 	(*view).Render()
 
 }

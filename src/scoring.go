@@ -10,8 +10,9 @@ import (
 
 // Scoring implements Viewport
 type Scoring struct {
-	title string
-	card  *widgets.Paragraph
+	title              string
+	card               *widgets.Paragraph
+	selectionCursorPos int
 }
 
 func (self Scoring) Handler(e <-chan ui.Event) (Viewport, error) {
@@ -20,7 +21,7 @@ func (self Scoring) Handler(e <-chan ui.Event) (Viewport, error) {
 	case "<C-c>":
 		return self, Quit{}
 	case "<Enter>":
-		return createSelection(), nil
+		return createSelection(self.selectionCursorPos), nil
 	}
 	return self, nil
 }
@@ -37,7 +38,7 @@ func Accuracy(correctCharacters int, typedCharacters int) float64 {
 	return float64(correctCharacters) / float64(typedCharacters)
 }
 
-func CreateScoring(correctCharacters int, totalCharacters int, duration time.Duration) Scoring {
+func CreateScoring(correctCharacters int, totalCharacters int, duration time.Duration, selectionCursorPos int) Scoring {
 	cpm := Cpm(correctCharacters, duration)
 	accuracy := Accuracy(correctCharacters, totalCharacters)
 	card := widgets.NewParagraph()
@@ -45,7 +46,8 @@ func CreateScoring(correctCharacters int, totalCharacters int, duration time.Dur
 	card.Text = fmt.Sprintf("CPM: %.0f\nAccuracy: %.2f%%", cpm, 100.0*accuracy)
 	card.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 	return Scoring{
-		title: "Scoring",
-		card:  card,
+		title:              "Scoring",
+		card:               card,
+		selectionCursorPos: selectionCursorPos,
 	}
 }

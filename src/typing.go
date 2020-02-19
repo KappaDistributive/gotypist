@@ -11,19 +11,20 @@ import (
 
 // Typing implements Viewport
 type Typing struct {
-	title             string
-	input             *widgets.Paragraph
-	display           *widgets.Paragraph
-	words             []string
-	cursorPos         int
-	start             int
-	newline           int
-	end               int
-	totalCharacters   int
-	started           bool
-	startTime         time.Time
-	correctCharacters int
-	typedCharaceters  int
+	title              string
+	input              *widgets.Paragraph
+	display            *widgets.Paragraph
+	words              []string
+	cursorPos          int
+	start              int
+	newline            int
+	end                int
+	totalCharacters    int
+	started            bool
+	startTime          time.Time
+	correctCharacters  int
+	typedCharaceters   int
+	selectionCursorPos int
 }
 
 func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
@@ -35,7 +36,7 @@ func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	case "<C-c>":
 		return self, Quit{}
 	case "<Escape>":
-		return createSelection(), nil
+		return createSelection(self.selectionCursorPos), nil
 	// TODO: replace ad-hoc text handling
 	case "<Space>":
 		updateCpm(text, &self)
@@ -44,7 +45,7 @@ func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 		if self.cursorPos == len(self.words) {
 			// end the game
 			duration := time.Since(self.startTime)
-			return CreateScoring(self.correctCharacters, self.totalCharacters, duration), nil
+			return CreateScoring(self.correctCharacters, self.totalCharacters, duration, self.selectionCursorPos), nil
 		}
 		if self.cursorPos == self.newline {
 			self.start = self.newline
@@ -103,7 +104,7 @@ func checkWord(word string, cursorPos int, words *[]string) {
 	}
 }
 
-func createTyping(lesson Lesson) Typing {
+func createTyping(lesson Lesson, selectionCursorPos int) Typing {
 	display := widgets.NewParagraph()
 	display.Title = lesson.Title
 	display.SetRect(MainMinX, MainMinY, MainMaxX, 5)
@@ -118,17 +119,18 @@ func createTyping(lesson Lesson) Typing {
 	end := newline + CalculateLineBreak(display.Inner.Dx(), words[newline:])
 
 	return Typing{
-		title:             "Typing",
-		input:             input,
-		display:           display,
-		words:             words,
-		cursorPos:         0,
-		start:             start,
-		newline:           newline,
-		end:               end,
-		totalCharacters:   len(lesson.Content) + 1, // +1 for the final space
-		started:           false,
-		startTime:         time.Now(),
-		correctCharacters: 0,
+		title:              "Typing",
+		input:              input,
+		display:            display,
+		words:              words,
+		cursorPos:          0,
+		start:              start,
+		newline:            newline,
+		end:                end,
+		totalCharacters:    len(lesson.Content) + 1, // +1 for the final space
+		started:            false,
+		startTime:          time.Now(),
+		correctCharacters:  0,
+		selectionCursorPos: selectionCursorPos,
 	}
 }
