@@ -1,4 +1,4 @@
-module github.com/KappaDistributive/gotypist
+module github.com/KappaDistributive/gotypist/v1
 
 go 1.13
 
