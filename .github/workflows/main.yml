@@ -14,6 +14,6 @@ jobs:
     - name: test
       uses: cedrickring/golang-action@1.4.1
       env:
-        PROJECT_PATH: "./src"
+        PROJECT_PATH: "./v1"
       with:
         args: go test -v ./...
