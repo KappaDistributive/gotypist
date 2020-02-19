@@ -4,3 +4,5 @@ It's meant to become a simple typing tutor for the command line, similar to gtyp
 while addressing some of the annoyances of the latter.
 
 In order to try gotypist, execute `make run` from this directory, select a lesson with the arrow keys and start typing.
+
+Alternatively, run `go get github.com/KappaDistributive/gotypist/v1` to install `gotypist` to your go path.
