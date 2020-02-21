@@ -11,4 +11,4 @@ test:
 
 clean:
 	@echo Deleting config.
-	rm -r ~/.config/gotypist
+	if [-d ~/.config/gotypist ]; then rm -r ~/.config/gotypist; fi

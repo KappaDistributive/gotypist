@@ -15,6 +15,7 @@ type Typing struct {
 	input              *widgets.Paragraph
 	display            *widgets.Paragraph
 	words              []string
+	wordStatus         []string
 	cursorPos          int
 	start              int
 	newline            int
@@ -39,8 +40,12 @@ func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 		return createSelection(self.selectionCursorPos), nil
 	// TODO: replace ad-hoc text handling
 	case "<Space>":
+		if text == self.words[self.cursorPos] {
+			self.wordStatus[self.cursorPos] = StatusCorrect
+		} else {
+			self.wordStatus[self.cursorPos] = StatusIncorrect
+		}
 		updateCpm(text, &self)
-		checkWord(text, self.cursorPos, &self.words)
 		self.cursorPos += 1
 		if self.cursorPos == len(self.words) {
 			// end the game
@@ -56,30 +61,59 @@ func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	case "<Tab>", "<Enter>":
 	case "<Backspace>":
 		if length > 0 {
-			self.input.Text = text[:length-1] + Cursor
+			text := text[:length-1]
+			self.setSubwordStatus(text)
+			if text == self.words[self.cursorPos][:len(text)] {
+				self.wordStatus[self.cursorPos] = StatusNeutral
+			} else {
+				self.wordStatus[self.cursorPos] = StatusIncorrect
+			}
+			self.input.Text = text + Cursor
 		}
 	default:
 		if !self.started {
 			self.startTime = time.Now()
 			self.started = true
 		}
-		self.input.Text = text + event.ID + Cursor
+		text = text + event.ID
+		self.setSubwordStatus(text)
+		self.input.Text = text + Cursor
 	}
 	return self, nil
 }
 
 func (self Typing) Render() {
-	self.display.Text = getDisplayText(self.words, self.start, self.newline, self.end)
+	self.UpdateText()
 	ui.Render(self.display, self.input)
 }
 
-func getDisplayText(words []string, start, newline, end int) string {
-	length := len(words)
-	text := strings.Join(words[start:Min(length, newline)], " ")
+func (self Typing) UpdateText() {
+	words := make([]string, len(self.words))
+	copy(words, self.words)
+	for i, word := range words {
+		switch self.wordStatus[i] {
+		case StatusCorrect:
+			words[i] = "[" + word + "](fg:" + CorrectFg + ")"
+		case StatusIncorrect:
+			words[i] = "[" + word + "](fg:" + FalseFg + ")"
+		}
+	}
+	text := strings.Join(words[self.start:Min(len(words), self.newline)], " ")
 	text += "\n"
-	text += strings.Join(words[Min(length, newline):Min(length, end)], " ")
+	text += strings.Join(
+		words[Min(len(words),
+			self.newline):Min(len(words), self.end)], " ")
 
-	return text
+	self.display.Text = text
+}
+
+func (self Typing) setSubwordStatus(word string) {
+	if word == self.words[self.cursorPos][:len(word)] {
+		self.wordStatus[self.cursorPos] = StatusNeutral
+	} else {
+		self.wordStatus[self.cursorPos] = StatusIncorrect
+
+	}
 }
 
 func updateCpm(word string, typing *Typing) {
@@ -93,17 +127,6 @@ func updateCpm(word string, typing *Typing) {
 	typing.input.Title = fmt.Sprintf("CPM: %.0f", cpm)
 }
 
-func checkWord(word string, cursorPos int, words *[]string) {
-	if ref := (*words)[cursorPos]; strings.Trim(word, Cursor) == ref {
-		// input is correct
-		(*words)[cursorPos] = "[" + ref + "](fg:" + CorrectFg + ")"
-	} else {
-		// input is false
-		(*words)[cursorPos] = "[" + ref + "](fg:" + FalseFg + ")"
-
-	}
-}
-
 func createTyping(lesson Lesson, selectionCursorPos int) Typing {
 	display := widgets.NewParagraph()
 	display.Title = lesson.Title
@@ -114,6 +137,10 @@ func createTyping(lesson Lesson, selectionCursorPos int) Typing {
 	input.Text = Cursor
 	input.SetRect(MainMinX, 6, MainMaxX, 9)
 	words := strings.Split(lesson.Content, " ")
+	var wordStatus []string
+	for _, _ = range words {
+		wordStatus = append(wordStatus, StatusNeutral)
+	}
 	start := 0
 	newline := CalculateLineBreak(display.Inner.Dx(), words)
 	end := newline + CalculateLineBreak(display.Inner.Dx(), words[newline:])
@@ -123,6 +150,7 @@ func createTyping(lesson Lesson, selectionCursorPos int) Typing {
 		input:              input,
 		display:            display,
 		words:              words,
+		wordStatus:         wordStatus,
 		cursorPos:          0,
 		start:              start,
 		newline:            newline,
