@@ -18,6 +18,12 @@ const (
 	LessonsDir string = ConfigDir + "/lessons"
 )
 
+const (
+	StatusNeutral   string = "neutral"
+	StatusCorrect   string = "correct"
+	StatusIncorrect string = "incorrect"
+)
+
 func main() {
 	var view Viewport
 	initialize(&view)
