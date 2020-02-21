@@ -8,7 +8,7 @@ import (
 // Throw this when quitting the app.
 type Quit struct{}
 
-func (self Quit) Error() string {
+func (quit Quit) Error() string {
 	return "Quit program."
 }
 

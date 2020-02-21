@@ -28,91 +28,94 @@ type Typing struct {
 	selectionCursorPos int
 }
 
-func (self Typing) Handler(e <-chan ui.Event) (Viewport, error) {
+// Handler handles ui events
+func (typing Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
-	text := DropCursor(self.input.Text)
+	text := DropCursor(typing.input.Text)
 	length := len(text)
 
 	switch event.ID {
 	case "<C-c>":
-		return self, Quit{}
+		return typing, Quit{}
 	case "<Escape>":
-		return createSelection(self.selectionCursorPos), nil
+		return createSelection(typing.selectionCursorPos), nil
 	// TODO: replace ad-hoc text handling
 	case "<Space>":
-		if text == self.words[self.cursorPos] {
-			self.wordStatus[self.cursorPos] = StatusCorrect
+		if text == typing.words[typing.cursorPos] {
+			typing.wordStatus[typing.cursorPos] = StatusCorrect
 		} else {
-			self.wordStatus[self.cursorPos] = StatusIncorrect
+			typing.wordStatus[typing.cursorPos] = StatusIncorrect
 		}
-		updateCpm(text, &self)
-		self.cursorPos += 1
-		if self.cursorPos == len(self.words) {
+		updateCpm(text, &typing)
+		typing.cursorPos++
+		if typing.cursorPos == len(typing.words) {
 			// end the game
-			duration := time.Since(self.startTime)
-			return CreateScoring(self.correctCharacters, self.totalCharacters, duration, self.selectionCursorPos), nil
+			duration := time.Since(typing.startTime)
+			return CreateScoring(typing.correctCharacters, typing.totalCharacters, duration, typing.selectionCursorPos), nil
 		}
-		if self.cursorPos == self.newline {
-			self.start = self.newline
-			self.newline = self.end
-			self.end = self.newline + CalculateLineBreak(self.display.Inner.Dx(), self.words[self.newline:])
+		if typing.cursorPos == typing.newline {
+			typing.start = typing.newline
+			typing.newline = typing.end
+			typing.end = typing.newline + CalculateLineBreak(typing.display.Inner.Dx(), typing.words[typing.newline:])
 		}
-		self.input.Text = Cursor
+		typing.input.Text = Cursor
 	case "<Tab>", "<Enter>":
 	case "<Backspace>":
 		if length > 0 {
 			text := text[:length-1]
-			self.setSubwordStatus(text)
-			if text == self.words[self.cursorPos][:len(text)] {
-				self.wordStatus[self.cursorPos] = StatusNeutral
+			typing.setSubwordStatus(text)
+			if text == typing.words[typing.cursorPos][:len(text)] {
+				typing.wordStatus[typing.cursorPos] = StatusNeutral
 			} else {
-				self.wordStatus[self.cursorPos] = StatusIncorrect
+				typing.wordStatus[typing.cursorPos] = StatusIncorrect
 			}
-			self.input.Text = text + Cursor
+			typing.input.Text = text + Cursor
 		}
 	default:
-		if !self.started {
-			self.startTime = time.Now()
-			self.started = true
+		if !typing.started {
+			typing.startTime = time.Now()
+			typing.started = true
 		}
 		text = text + event.ID
-		self.setSubwordStatus(text)
-		self.input.Text = text + Cursor
+		typing.setSubwordStatus(text)
+		typing.input.Text = text + Cursor
 	}
-	return self, nil
+	return typing, nil
 }
 
-func (self Typing) Render() {
-	self.UpdateText()
-	ui.Render(self.display, self.input)
+// Render renders the ui
+func (typing Typing) Render() {
+	typing.UpdateText()
+	ui.Render(typing.display, typing.input)
 }
 
-func (self Typing) UpdateText() {
-	words := make([]string, len(self.words))
-	copy(words, self.words)
+// UpdateText computes the text to be displayed
+func (typing Typing) UpdateText() {
+	words := make([]string, len(typing.words))
+	copy(words, typing.words)
 	for i, word := range words {
-		switch self.wordStatus[i] {
+		switch typing.wordStatus[i] {
 		case StatusCorrect:
 			words[i] = "[" + word + "](fg:" + CorrectFg + ")"
 		case StatusIncorrect:
 			words[i] = "[" + word + "](fg:" + FalseFg + ")"
 		}
 	}
-	text := strings.Join(words[self.start:Min(len(words), self.newline)], " ")
+	text := strings.Join(words[typing.start:Min(len(words), typing.newline)], " ")
 	text += "\n"
 	text += strings.Join(
 		words[Min(len(words),
-			self.newline):Min(len(words), self.end)], " ")
+			typing.newline):Min(len(words), typing.end)], " ")
 
-	self.display.Text = text
+	typing.display.Text = text
 }
 
-func (self Typing) setSubwordStatus(word string) {
-	length := Min(len(word), len(self.words[self.cursorPos]))
-	if word == self.words[self.cursorPos][:length] {
-		self.wordStatus[self.cursorPos] = StatusNeutral
+func (typing Typing) setSubwordStatus(word string) {
+	length := Min(len(word), len(typing.words[typing.cursorPos]))
+	if word == typing.words[typing.cursorPos][:length] {
+		typing.wordStatus[typing.cursorPos] = StatusNeutral
 	} else {
-		self.wordStatus[self.cursorPos] = StatusIncorrect
+		typing.wordStatus[typing.cursorPos] = StatusIncorrect
 
 	}
 }
@@ -139,7 +142,7 @@ func createTyping(lesson Lesson, selectionCursorPos int) Typing {
 	input.SetRect(MainMinX, 6, MainMaxX, 9)
 	words := strings.Split(lesson.Content, " ")
 	var wordStatus []string
-	for _, _ = range words {
+	for range words {
 		wordStatus = append(wordStatus, StatusNeutral)
 	}
 	start := 0

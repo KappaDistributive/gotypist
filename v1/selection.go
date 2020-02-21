@@ -17,26 +17,28 @@ type Selection struct {
 	savedCursorPos int
 }
 
-func (self Selection) Handler(e <-chan ui.Event) (Viewport, error) {
+// Handler manages ui events
+func (selection Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	switch event.ID {
 	case "<C-c>":
-		return self, Quit{}
+		return selection, Quit{}
 	case "<Up>", "k":
-		self.content.ScrollUp()
+		selection.content.ScrollUp()
 	case "<Down>", "j":
-		self.content.ScrollDown()
+		selection.content.ScrollDown()
 	case "<Enter>":
-		self.savedCursorPos = self.content.SelectedRow
-		lesson := self.lessons[self.savedCursorPos]
+		selection.savedCursorPos = selection.content.SelectedRow
+		lesson := selection.lessons[selection.savedCursorPos]
 
-		return createTyping(lesson, self.savedCursorPos), nil
+		return createTyping(lesson, selection.savedCursorPos), nil
 	}
-	return self, nil
+	return selection, nil
 }
 
-func (self Selection) Render() {
-	ui.Render(self.content)
+// Render renders the ui
+func (selection Selection) Render() {
+	ui.Render(selection.content)
 }
 
 func createSelection(cursorPos int) Selection {
@@ -64,8 +66,8 @@ func createSelection(cursorPos int) Selection {
 			errorHandling(err)
 		}
 		lessons = append(lessons, lesson)
-		lesson_name := lesson.Title
-		content.Rows = append(content.Rows, lesson_name)
+		lessonName := lesson.Title
+		content.Rows = append(content.Rows, lessonName)
 	}
 
 	content.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)

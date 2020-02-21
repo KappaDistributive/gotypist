@@ -19,8 +19,11 @@ const (
 )
 
 const (
-	StatusNeutral   string = "neutral"
-	StatusCorrect   string = "correct"
+    // StatusNeutral is the status for neutral text 
+	StatusNeutral   string = "neutral" 
+	// StatusCorrect is the status for correct text input
+	StatusCorrect   string = "correct" 
+	// StatusIncorrect is the status for incorrect text input
 	StatusIncorrect string = "incorrect"
 )
 

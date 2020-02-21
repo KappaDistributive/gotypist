@@ -6,6 +6,7 @@ import (
 	ui "github.com/gizak/termui/v3"
 )
 
+// Viewport provides a generic interface for a ui element
 type Viewport interface {
 	Render()                                   // Render takes care of rendering the UI.
 	Handler(<-chan ui.Event) (Viewport, error) // Handler takes care of the event loop.

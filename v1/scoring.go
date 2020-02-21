@@ -15,29 +15,34 @@ type Scoring struct {
 	selectionCursorPos int
 }
 
-func (self Scoring) Handler(e <-chan ui.Event) (Viewport, error) {
+// Handler manges ui events
+func (scoring Scoring) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	switch event.ID {
 	case "<C-c>":
-		return self, Quit{}
+		return scoring, Quit{}
 	case "<Enter>":
-		return createSelection(self.selectionCursorPos), nil
+		return createSelection(scoring.selectionCursorPos), nil
 	}
-	return self, nil
+	return scoring, nil
 }
 
-func (self Scoring) Render() {
-	ui.Render(self.card)
+// Render renders the ui
+func (scoring Scoring) Render() {
+	ui.Render(scoring.card)
 }
 
+// Cpm calculates characters per minute
 func Cpm(correctCharacters int, duration time.Duration) float64 {
 	return 60.0 * float64(correctCharacters) / float64(duration.Seconds())
 }
 
+// Accuracy calculates the ratio of correctly typed characters
 func Accuracy(correctCharacters int, typedCharacters int) float64 {
 	return float64(correctCharacters) / float64(typedCharacters)
 }
 
+// CreateScoring creates a scoring view
 func CreateScoring(correctCharacters int, totalCharacters int, duration time.Duration, selectionCursorPos int) Scoring {
 	cpm := Cpm(correctCharacters, duration)
 	accuracy := Accuracy(correctCharacters, totalCharacters)

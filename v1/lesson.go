@@ -1,55 +1,56 @@
 package main
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"strings"
+    "fmt"
+    "io"
+    "io/ioutil"
+    "os"
+    "strings"
 )
 
+// Lesson implements Viewport
 type Lesson struct {
-	Title   string
-	Content string
+    Title   string
+    Content string
 }
 
 func createSampleLessons() {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		errorHandling(err)
-	}
+    home, err := os.UserHomeDir()
+    if err != nil {
+        errorHandling(err)
+    }
 
-	files, err := ioutil.ReadDir(home + "/.config/gotypist/lessons")
-	if err != nil {
-		errorHandling(err)
-	}
+    files, err := ioutil.ReadDir(home + "/.config/gotypist/lessons")
+    if err != nil {
+        errorHandling(err)
+    }
 
-	// check whether there are already lessons
-	for _, file := range files {
-		splits := strings.Split(file.Name(), ".")
-		if splits[len(splits)-1] == "yaml" {
-			return
-		}
-	}
+    // check whether there are already lessons
+    for _, file := range files {
+        splits := strings.Split(file.Name(), ".")
+        if splits[len(splits)-1] == "yaml" {
+            return
+        }
+    }
 
-	// create sample lessons if no lessons exist
-	files, err = ioutil.ReadDir("data/sample_lessons")
-	if err != nil {
-		errorHandling(err)
-	}
+    // create sample lessons if no lessons exist
+    files, err = ioutil.ReadDir("data/sample_lessons")
+    if err != nil {
+        errorHandling(err)
+    }
 
-	for _, lesson := range files {
-		source_file, err := os.Open(fmt.Sprintf("data/sample_lessons/%s", lesson.Name()))
-		if err != nil {
-			errorHandling(err)
-		}
-		target_file, err := os.Create(home + fmt.Sprintf("/.config/gotypist/lessons/%s", lesson.Name()))
-		if err != nil {
-			errorHandling(err)
-		}
-		io.Copy(target_file, source_file)
+    for _, lesson := range files {
+        sourceFile, err := os.Open(fmt.Sprintf("data/sample_lessons/%s", lesson.Name()))
+        if err != nil {
+            errorHandling(err)
+        }
+        targetFile, err := os.Create(home + fmt.Sprintf("/.config/gotypist/lessons/%s", lesson.Name()))
+        if err != nil {
+            errorHandling(err)
+        }
+        io.Copy(targetFile, sourceFile)
 
-		source_file.Close()
-		target_file.Close()
-	}
+        sourceFile.Close()
+        targetFile.Close()
+    }
 }
