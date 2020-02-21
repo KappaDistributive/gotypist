@@ -108,7 +108,8 @@ func (self Typing) UpdateText() {
 }
 
 func (self Typing) setSubwordStatus(word string) {
-	if word == self.words[self.cursorPos][:len(word)] {
+	length := Min(len(word), len(self.words[self.cursorPos]))
+	if word == self.words[self.cursorPos][:length] {
 		self.wordStatus[self.cursorPos] = StatusNeutral
 	} else {
 		self.wordStatus[self.cursorPos] = StatusIncorrect
