@@ -32,7 +32,6 @@ type Typing struct {
 func (typing Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	text := DropCursor(typing.input.Text)
-	length := Min(len(text), len(typing.words[typing.cursorPos]))
 
 	switch event.ID {
 	case "<C-c>":
@@ -64,11 +63,6 @@ func (typing Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 		if len(text) > 0 {
 			text := text[:len(text)-1]
 			typing.setSubwordStatus(text)
-			if text == typing.words[typing.cursorPos][:length] {
-				typing.wordStatus[typing.cursorPos] = StatusNeutral
-			} else {
-				typing.wordStatus[typing.cursorPos] = StatusIncorrect
-			}
 			typing.input.Text = text + Cursor
 		}
 	default:
