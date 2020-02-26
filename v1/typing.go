@@ -32,7 +32,7 @@ type Typing struct {
 func (typing Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	text := DropCursor(typing.input.Text)
-	length := len(text)
+	length := Min(len(text), len(typing.words[typing.cursorPos]))
 
 	switch event.ID {
 	case "<C-c>":
@@ -61,10 +61,10 @@ func (typing Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 		typing.input.Text = Cursor
 	case "<Tab>", "<Enter>":
 	case "<Backspace>":
-		if length > 0 {
-			text := text[:length-1]
+		if len(text) > 0 {
+			text := text[:len(text)-1]
 			typing.setSubwordStatus(text)
-			if text == typing.words[typing.cursorPos][:len(text)] {
+			if text == typing.words[typing.cursorPos][:length] {
 				typing.wordStatus[typing.cursorPos] = StatusNeutral
 			} else {
 				typing.wordStatus[typing.cursorPos] = StatusIncorrect
