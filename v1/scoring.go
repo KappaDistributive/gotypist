@@ -18,11 +18,14 @@ type Scoring struct {
 // Handler manges ui events
 func (scoring Scoring) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
-	switch event.ID {
-	case "<C-c>":
-		return scoring, Quit{}
-	case "<Enter>":
-		return createSelection(scoring.selectionCursorPos), nil
+
+	if event.Type == ui.KeyboardEvent {
+		switch event.ID {
+		case "<C-c>":
+			return scoring, Quit{}
+		case "<Enter>":
+			return createSelection(scoring.selectionCursorPos), nil
+		}
 	}
 	return scoring, nil
 }
