@@ -27,6 +27,9 @@ func initialize(view *Viewport) {
 	if err := os.MkdirAll(home+"/.config/gotypist/lessons", 0755); err != nil {
 		errorHandling(err)
 	}
+	if err := os.MkdirAll(home+"/.config/gotypist/bags_of_words", 0755); err != nil {
+		errorHandling(err)
+	}
 
 	// if no lessons exist, add sample lessons
 	createSampleLessons()
