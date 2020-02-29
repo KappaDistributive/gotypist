@@ -23,18 +23,21 @@ type Selection struct {
 // Handler manages ui events
 func (selection Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
-	switch event.ID {
-	case "<C-c>":
-		return selection, Quit{}
-	case "<Up>", "k":
-		selection.content.ScrollUp()
-	case "<Down>", "j":
-		selection.content.ScrollDown()
-	case "<Enter>":
-		selection.savedCursorPos = selection.content.SelectedRow
-		lesson := selection.lessons[selection.savedCursorPos]
 
-		return createTyping(lesson, selection.savedCursorPos), nil
+	if event.Type == ui.KeyboardEvent {
+		switch event.ID {
+		case "<C-c>":
+			return selection, Quit{}
+		case "<Up>", "k":
+			selection.content.ScrollUp()
+		case "<Down>", "j":
+			selection.content.ScrollDown()
+		case "<Enter>":
+			selection.savedCursorPos = selection.content.SelectedRow
+			lesson := selection.lessons[selection.savedCursorPos]
+
+			return createTyping(lesson, selection.savedCursorPos), nil
+		}
 	}
 	return selection, nil
 }

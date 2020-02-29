@@ -33,46 +33,54 @@ func (typing Typing) Handler(e <-chan ui.Event) (Viewport, error) {
 	event := <-e
 	text := DropCursor(typing.input.Text)
 
-	switch event.ID {
-	case "<C-c>":
-		return typing, Quit{}
-	case "<Escape>":
-		return createSelection(typing.selectionCursorPos), nil
-	// TODO: replace ad-hoc text handling
-	case "<Space>":
-		if text == typing.words[typing.cursorPos] {
-			typing.wordStatus[typing.cursorPos] = StatusCorrect
-		} else {
-			typing.wordStatus[typing.cursorPos] = StatusIncorrect
-		}
-		updateCpm(text, &typing)
-		typing.cursorPos++
-		if typing.cursorPos == len(typing.words) {
-			// end the game
-			duration := time.Since(typing.startTime)
-			return CreateScoring(typing.correctCharacters, typing.totalCharacters, duration, typing.selectionCursorPos), nil
-		}
-		if typing.cursorPos == typing.newline {
-			typing.start = typing.newline
-			typing.newline = typing.end
-			typing.end = typing.newline + CalculateLineBreak(typing.display.Inner.Dx(), typing.words[typing.newline:])
-		}
-		typing.input.Text = Cursor
-	case "<Tab>", "<Enter>":
-	case "<Backspace>":
-		if len(text) > 0 {
-			text := text[:len(text)-1]
+	if event.Type == ui.KeyboardEvent {
+		// TODO: replace ad-hoc text handling
+		switch event.ID {
+		case "<C-c>":
+			return typing, Quit{}
+		case "<Escape>":
+			return createSelection(typing.selectionCursorPos), nil
+		case "<Space>":
+			if text == typing.words[typing.cursorPos] {
+				typing.wordStatus[typing.cursorPos] = StatusCorrect
+			} else {
+				typing.wordStatus[typing.cursorPos] = StatusIncorrect
+			}
+			updateCpm(text, &typing)
+			typing.cursorPos++
+			if typing.cursorPos == len(typing.words) {
+				// end the game
+				duration := time.Since(typing.startTime)
+				return CreateScoring(
+					typing.correctCharacters,
+					typing.totalCharacters,
+					duration,
+					typing.selectionCursorPos), nil
+			}
+			if typing.cursorPos == typing.newline {
+				typing.start = typing.newline
+				typing.newline = typing.end
+				typing.end = typing.newline + CalculateLineBreak(
+					typing.display.Inner.Dx(),
+					typing.words[typing.newline:])
+			}
+			typing.input.Text = Cursor
+		case "<Tab>", "<Enter>":
+		case "<Backspace>":
+			if len(text) > 0 {
+				text := text[:len(text)-1]
+				typing.setSubwordStatus(text)
+				typing.input.Text = text + Cursor
+			}
+		default:
+			if !typing.started {
+				typing.startTime = time.Now()
+				typing.started = true
+			}
+			text = text + event.ID
 			typing.setSubwordStatus(text)
 			typing.input.Text = text + Cursor
 		}
-	default:
-		if !typing.started {
-			typing.startTime = time.Now()
-			typing.started = true
-		}
-		text = text + event.ID
-		typing.setSubwordStatus(text)
-		typing.input.Text = text + Cursor
 	}
 	return typing, nil
 }
