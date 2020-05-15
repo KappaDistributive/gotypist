@@ -1,7 +1,11 @@
 run: build 
 	./gotypist
 
-build:
+dependencies:
+	@echo Installing dependencies.
+	go get -d ./v1
+
+build: dependencies
 	@echo Compiling gotypist.
 	go build -o gotypist ./v1
 
