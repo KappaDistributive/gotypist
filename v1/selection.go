@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -30,8 +31,14 @@ func (selection Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 			return selection, Quit{}
 		case "<Up>", "k":
 			selection.content.ScrollUp()
+			selection.savedCursorPos = selection.content.SelectedRow
+			lesson := selection.lessons[selection.savedCursorPos]
+			selection.content.Title = fmt.Sprintf("Lesson | %v", lesson.Tag )
 		case "<Down>", "j":
 			selection.content.ScrollDown()
+			selection.savedCursorPos = selection.content.SelectedRow
+			lesson := selection.lessons[selection.savedCursorPos]
+			selection.content.Title = fmt.Sprintf("Lesson | %v", lesson.Tag )
 		case "<Enter>":
 			selection.savedCursorPos = selection.content.SelectedRow
 			lesson := selection.lessons[selection.savedCursorPos]
@@ -82,6 +89,7 @@ func createSelection(cursorPos int) Selection {
 	lesson := Lesson{
 		Title:   "Top 300 words",
 		Content: strings.Join(lesson_text, " "),
+		Tag:     DASH_MODE,
 	}
 	lessons = append(lessons, lesson)
 	content.Rows = append(content.Rows, lesson.Title)
@@ -100,6 +108,7 @@ func createSelection(cursorPos int) Selection {
 		if err = yaml.UnmarshalStrict(data, &lesson); err != nil {
 			errorHandling(err)
 		}
+		lesson.Tag = PROSE_MODE
 		lessons = append(lessons, lesson)
 		content.Rows = append(content.Rows, lesson.Title)
 	}
