@@ -31,14 +31,8 @@ func (selection Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 			return selection, Quit{}
 		case "<Up>", "k":
 			selection.content.ScrollUp()
-			selection.savedCursorPos = selection.content.SelectedRow
-			lesson := selection.lessons[selection.savedCursorPos]
-			selection.content.Title = fmt.Sprintf("Lesson | %v", lesson.Tag )
 		case "<Down>", "j":
 			selection.content.ScrollDown()
-			selection.savedCursorPos = selection.content.SelectedRow
-			lesson := selection.lessons[selection.savedCursorPos]
-			selection.content.Title = fmt.Sprintf("Lesson | %v", lesson.Tag )
 		case "<Enter>":
 			selection.savedCursorPos = selection.content.SelectedRow
 			lesson := selection.lessons[selection.savedCursorPos]
@@ -51,6 +45,9 @@ func (selection Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 
 // Render renders the ui
 func (selection Selection) Render() {
+	selection.savedCursorPos = selection.content.SelectedRow
+	lesson := selection.lessons[selection.savedCursorPos]
+	selection.content.Title = fmt.Sprintf("Lesson | %v", lesson.Tag )
 	ui.Render(selection.content)
 }
 
