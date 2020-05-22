@@ -12,6 +12,7 @@ import (
 type Lesson struct {
 	Title   string
 	Content string
+	Tag     ModeTag
 }
 
 func createSampleLessons() {
