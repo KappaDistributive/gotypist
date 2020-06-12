@@ -1,5 +1,7 @@
 Gotypist is a simple typing tutor for the command line, similar to gtypist.
 
+![gotypist's selection screen](https://github.com/kappadistributive/gotypist/assets/selection_screen.png)
+
 It offers two modes:
 
 - `Prose mode` let's the user select a lesson from provided sample texts or add their own.
