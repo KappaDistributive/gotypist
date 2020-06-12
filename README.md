@@ -1,6 +1,6 @@
 Gotypist is a simple typing tutor for the command line, similar to gtypist.
 
-![gotypist's selection screen](https://github.com/kappadistributive/gotypist/assets/selection_screen.png)
+![gotypist's selection screen](https://github.com/KappaDistributive/gotypist/blob/master/assets/selection_screen.png)
 
 It offers two modes:
 
