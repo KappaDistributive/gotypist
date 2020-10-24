@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestAccuracy(t *testing.T) {
 	type args struct {
@@ -27,6 +30,60 @@ func TestAccuracy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Accuracy(tt.args.correctCharacters, tt.args.typedCharacters); got != tt.want {
 				t.Errorf("Accuracy() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCpm(t *testing.T) {
+	type args struct {
+		correctCharacters int
+		duration          time.Duration
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		{
+			name: "ShouldReturnCPMGivenDurationInSeconds",
+			args: args{
+				correctCharacters: 20,
+				duration:          time.Second * 15,
+			},
+			want: 80,
+		},
+		{
+			name: "ShouldReturnCPMGivenDurationInMinutes",
+			args: args{
+				correctCharacters: 80,
+				duration:          time.Minute,
+			},
+			want: 80,
+		},
+		{
+			name: "ShouldReturnCPMGivenDurationInMixedUnits",
+			args: args{
+				correctCharacters: 80,
+				duration:          time.Minute + time.Second * 20,
+			},
+			want: 60,
+		},
+
+		{
+			name: "ShouldReturnCPMWithoutRoundingOff",
+			args: args{
+				correctCharacters: 78,
+				duration:          time.Second * 35,
+			},
+			want: 133.71428571428572,
+		},
+
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Cpm(tt.args.correctCharacters, tt.args.duration); got != tt.want {
+				t.Errorf("Cpm() = %v, want %v", got, tt.want)
 			}
 		})
 	}
