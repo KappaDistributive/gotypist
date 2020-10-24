@@ -56,7 +56,7 @@ func createLessonFromBagOfWords(home string) error {
 	for _, bag_of_words := range files {
 		sourceFilePath := fmt.Sprintf("data/bags_of_words/%s", bag_of_words.Name())
 		targetFilePath := home + fmt.Sprintf("/.config/gotypist/bags_of_words/%s", bag_of_words.Name())
-		err := createLesson(sourceFilePath, targetFilePath)
+		err := copyLesson(sourceFilePath, targetFilePath)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func createLessonsFromSampleLessons(home string) error{
 	for _, lesson := range files {
 		sourceFilePath:= fmt.Sprintf("data/sample_lessons/%s", lesson.Name())
 		targetFilePath := home + fmt.Sprintf("/.config/gotypist/lessons/%s", lesson.Name())
-		err := createLesson(sourceFilePath, targetFilePath)
+		err := copyLesson(sourceFilePath, targetFilePath)
 		if err != nil {
 			return err
 		}
@@ -82,7 +82,7 @@ func createLessonsFromSampleLessons(home string) error{
 	return nil
 }
 
-func createLesson(sourceFilePath, targetFilePath string) error {
+func copyLesson(sourceFilePath, targetFilePath string) error {
 	sourceFile, err := os.Open(sourceFilePath)
 	if err != nil {
 		return err

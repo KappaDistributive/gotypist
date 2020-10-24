@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func Test_createLesson_ShouldNotReturnErrorWhenAbleToCreateLesson(t *testing.T) {
+func Test_copyLesson_ShouldNotReturnErrorWhenAbleToCreateLesson(t *testing.T) {
 	closingActions := setupSource(t)
 	defer closingActions()
 	targetDirectory := "./tmp/target/"
@@ -15,7 +15,7 @@ func Test_createLesson_ShouldNotReturnErrorWhenAbleToCreateLesson(t *testing.T) 
 	targetFile := "target-file"
 	targetFilePath := targetDirectory + targetFile
 
-	err := createLesson(sourceFilePath, targetFilePath)
+	err := copyLesson(sourceFilePath, targetFilePath)
 
 	assert.NoError(t, err)
 	files, err := ioutil.ReadDir(targetDirectory)
@@ -24,13 +24,13 @@ func Test_createLesson_ShouldNotReturnErrorWhenAbleToCreateLesson(t *testing.T) 
 	assert.Contains(t, files[0].Name(), targetFile)
 }
 
-func Test_createLesson_ShouldReturnErrorWhenUnableToCreateLesson(t *testing.T) {
+func Test_copyLesson_ShouldReturnErrorWhenUnableToCreateLesson(t *testing.T) {
 	targetDirectory := "./tmp/target/"
 	sourceFilePath := "./tmp/source/source-file"
 	targetFile := "target-file"
 	targetFilePath := targetDirectory + targetFile
 
-	err := createLesson(sourceFilePath, targetFilePath)
+	err := copyLesson(sourceFilePath, targetFilePath)
 
 	assert.Error(t, err)
 }
