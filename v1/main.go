@@ -12,7 +12,7 @@ const (
 	MainMaxX                            int    = 80
 	MainMinY                            int    = 0
 	MainMaxY                            int    = 15
-	CorrectFg                           string = "green"
+	CorrectFg                           string = "blue"
 	FalseFg                             string = "red"
 	ConfigDir                           string = "/.config/gotypist"
 	LessonsDir                          string = ConfigDir + "/lessons"

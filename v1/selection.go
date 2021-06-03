@@ -111,7 +111,7 @@ func createSelection(cursorPos int) Selection {
 	}
 
 	content.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
-	content.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
+	content.SelectedRowStyle = ui.NewStyle(ui.ColorBlue)
 	content.SelectedRow = cursorPos
 	return Selection{
 		title:          "Selection",
