@@ -47,7 +47,7 @@ func (selection Selection) Handler(e <-chan ui.Event) (Viewport, error) {
 func (selection Selection) Render() {
 	selection.savedCursorPos = selection.content.SelectedRow
 	lesson := selection.lessons[selection.savedCursorPos]
-	selection.content.Title = fmt.Sprintf("Lesson | %v", lesson.Tag )
+	selection.content.Title = fmt.Sprintf("Lesson | %v", lesson.Tag)
 	ui.Render(selection.content)
 }
 
@@ -111,7 +111,7 @@ func createSelection(cursorPos int) Selection {
 	}
 
 	content.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
-	content.SelectedRowStyle = ui.NewStyle(ui.ColorBlue)
+	content.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
 	content.SelectedRow = cursorPos
 	return Selection{
 		title:          "Selection",
