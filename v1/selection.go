@@ -118,8 +118,9 @@ func createSelection(cursorPos int) Selection {
 		content.Rows = append(content.Rows, lesson.Title)
 	}
 
-	lessons[1].Title = "Random Prose - " + lessons[rand.Intn(len(lessons)-2)+2].Title
-	lessons[1].Content = lessons[rand.Intn(len(lessons)-2)+2].Content
+	random_index := rand.Intn(len(lessons)-2) + 2
+	lessons[1].Title = "Random Prose - " + lessons[random_index].Title
+	lessons[1].Content = lessons[random_index].Content
 
 	content.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 	content.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
