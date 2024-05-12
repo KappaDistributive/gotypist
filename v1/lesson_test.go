@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -18,7 +17,7 @@ func Test_copyLesson_ShouldNotReturnErrorWhenAbleToCreateLesson(t *testing.T) {
 	err := copyLesson(sourceFilePath, targetFilePath)
 
 	assert.NoError(t, err)
-	files, err := ioutil.ReadDir(targetDirectory)
+	files, err := os.ReadDir(targetDirectory)
 	assert.NoError(t, err)
 	assert.Len(t, files, 1)
 	assert.Contains(t, files[0].Name(), targetFile)

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,7 +21,7 @@ func createSampleLessons() {
 		errorHandling(err)
 	}
 
-	files, err := ioutil.ReadDir(home + "/.config/gotypist/lessons")
+	files, err := os.ReadDir(home + "/.config/gotypist/lessons")
 	if err != nil {
 		errorHandling(err)
 	}
@@ -49,7 +48,7 @@ func createSampleLessons() {
 }
 
 func createLessonFromBagOfWords(home string) error {
-	files, err := ioutil.ReadDir("data/bags_of_words")
+	files, err := os.ReadDir("data/bags_of_words")
 	if err != nil {
 		return err
 	}
@@ -65,7 +64,7 @@ func createLessonFromBagOfWords(home string) error {
 }
 
 func createLessonsFromSampleLessons(home string) error{
-	files, err := ioutil.ReadDir("data/sample_lessons")
+	files, err := os.ReadDir("data/sample_lessons")
 	if err != nil {
 		return err
 	}

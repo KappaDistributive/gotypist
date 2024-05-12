@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"strings"
-	"time"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -64,7 +62,7 @@ func createSelection(cursorPos int) Selection {
 	lessons := []Lesson{}
 
 	// Create top 300 words lesson
-	data, err := ioutil.ReadFile(home + BagsOfWordsDir + "/en_us.yaml")
+	data, err := os.ReadFile(home + BagsOfWordsDir + "/en_us.yaml")
 	if err != nil {
 		errorHandling(err)
 	}
@@ -76,7 +74,6 @@ func createSelection(cursorPos int) Selection {
 	lesson_length := 0
 	var index int
 	var new_word string
-	rand.Seed(time.Now().UnixNano())
 	for lesson_length < BagsOfWordsLessonLengthInCharacters {
 		index = rand.Intn(299)
 		new_word = bagOfWords.Words[index]
@@ -100,12 +97,12 @@ func createSelection(cursorPos int) Selection {
 	content.Rows = append(content.Rows, lesson.Title)
 
 	// Load lessons from directory
-	files, err := ioutil.ReadDir(home + LessonsDir)
+	files, err := os.ReadDir(home + LessonsDir)
 	if err != nil {
 		errorHandling(err)
 	}
 	for _, fileinfo := range files {
-		data, err := ioutil.ReadFile(home + LessonsDir + "/" + fileinfo.Name())
+		data, err := os.ReadFile(home + LessonsDir + "/" + fileinfo.Name())
 		if err != nil {
 			errorHandling(err)
 		}
