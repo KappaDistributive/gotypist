@@ -91,13 +91,13 @@ func createSelection(cursorPos int) Selection {
 	lessons = append(lessons, lesson)
 	content.Rows = append(content.Rows, lesson.Title)
 
-    lesson = Lesson{
-        Title: "Random Prose",
-        Content: "",
-        Tag: PROSE_MODE,
-    }
-    lessons = append(lessons, lesson)
-    content.Rows = append(content.Rows, lesson.Title)
+	lesson = Lesson{
+		Title:   "Random Prose",
+		Content: "",
+		Tag:     PROSE_MODE,
+	}
+	lessons = append(lessons, lesson)
+	content.Rows = append(content.Rows, lesson.Title)
 
 	// Load lessons from directory
 	files, err := ioutil.ReadDir(home + LessonsDir)
@@ -118,7 +118,8 @@ func createSelection(cursorPos int) Selection {
 		content.Rows = append(content.Rows, lesson.Title)
 	}
 
-    lessons[1].Content = lessons[rand.Intn(len(lessons) - 2) + 2].Content
+	lessons[1].Title = "Random Prose - " + lessons[rand.Intn(len(lessons)-2)+2].Title
+	lessons[1].Content = lessons[rand.Intn(len(lessons)-2)+2].Content
 
 	content.SetRect(MainMinX, MainMinY, MainMaxX, MainMaxY)
 	content.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
