@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+  "time"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -50,6 +51,7 @@ func (selection Selection) Render() {
 }
 
 func createSelection(cursorPos int) Selection {
+  rand.Seed(time.Now().UnixNano())
 	home, err := os.UserHomeDir()
 	if err != nil {
 		errorHandling(err)
